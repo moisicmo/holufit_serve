@@ -1,0 +1,549 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id        Int      @id @default(autoincrement())
+  name      String
+  image     String?
+  colors    String[] // ["#FFFFFF", "#000000"]
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  createdBy String   @map("created_by")
+  role      Role[]
+  branches  Branch[]
+
+  @@map("tenants")
+}
+
+model Branch {
+  id              Int               @id @default(autoincrement())
+  addressId       Int               @map("address_id")
+  tenantId        Int               @map("tenant_id")
+  name            String
+  phone           String[]
+  schedule        String[]
+  active          Boolean           @default(true)
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @default(now()) @updatedAt @map("updated_at")
+  createdBy       String            @map("created_by")
+  address         Address           @relation(fields: [addressId], references: [id])
+  tenant          Tenant            @relation(fields: [tenantId], references: [id])
+  userRole        UserRole[]
+  plan            Plan[]
+  branchEquipment BranchEquipment[]
+  Class           Class[]
+
+  @@map("branches")
+}
+
+model Plan {
+  id               Int                      @id @default(autoincrement())
+  branchId         Int                      @map("branch_id")
+  name             String // "Ejecutivo", "Full", "Mensual"
+  description      String?
+  price            Float
+  duration         Int // en días (ej. 30)
+  accessDays       Int // cuántos días por semana
+  active           Boolean                  @default(true)
+  createdAt        DateTime                 @default(now()) @map("created_at")
+  updatedAt        DateTime                 @default(now()) @updatedAt @map("updated_at")
+  createdBy        String                   @map("created_by")
+  branch           Branch                   @relation(fields: [branchId], references: [id])
+  schedules        PlanSchedule[]
+  classes          Class[]
+  userSubscription UserSubscriptionBranch[]
+
+  @@map("plans")
+}
+
+model PlanSchedule {
+  id        Int      @id @default(autoincrement())
+  planId    Int      @map("plan_id")
+  dayOfWeek Int // 1=Lunes ... 7=Domingo
+  startTime String // "06:00"
+  endTime   String // "10:00"
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  createdBy String   @map("created_by")
+  plan      Plan     @relation(fields: [planId], references: [id])
+
+  @@map("plan_schedules")
+}
+
+model Equipment {
+  id          Int               @id @default(autoincrement())
+  name        String // "Caminadora", "Bicicleta estática", "Press de banca"
+  description String?
+  type        String? // "cardio", "pesas", "funcional"
+  active      Boolean           @default(true)
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @default(now()) @updatedAt @map("updated_at")
+  branches    BranchEquipment[]
+  eoutineDay  RoutineDay[]
+
+  @@map("equipments")
+}
+
+model BranchEquipment {
+  id          Int       @id @default(autoincrement())
+  branchId    Int       @map("branch_id")
+  equipmentId Int       @map("equipment_id")
+  image       String?
+  quantity    Int       @default(1)
+  available   Boolean   @default(true)
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
+  createdBy   String    @map("created_by")
+  branch      Branch    @relation(fields: [branchId], references: [id])
+  equipment   Equipment @relation(fields: [equipmentId], references: [id])
+
+  @@unique([branchId, equipmentId])
+  @@map("branch_equipments")
+}
+
+model Class {
+  id          Int             @id @default(autoincrement())
+  branchId    Int             @map("branch_id")
+  trainerId   Int             @map("trainer_id") // usuario que la imparte
+  name        String // "Kombat", "Spinning", "Dance Xtrem"
+  description String?
+  category    String? // "cardio", "baile", "fuerza"
+  active      Boolean         @default(true)
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @default(now()) @updatedAt @map("updated_at")
+  createdBy   String          @map("created_by")
+  branch      Branch          @relation(fields: [branchId], references: [id])
+  trainer     UserRole        @relation("trainer_classes", fields: [trainerId], references: [id])
+  schedules   ClassSchedule[]
+  plans       Plan[]
+
+  @@map("classes")
+}
+
+model ClassSchedule {
+  id        Int      @id @default(autoincrement())
+  classId   Int      @map("class_id")
+  dayOfWeek Int // 1=Lunes ... 7=Domingo
+  startTime String // "08:30"
+  endTime   String // "09:30"
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  createdBy String   @map("created_by")
+  class     Class    @relation(fields: [classId], references: [id])
+
+  @@map("class_schedules")
+}
+
+model Address {
+  id        Int      @id @default(autoincrement())
+  city      String   @db.VarChar
+  zone      String   @db.VarChar
+  detail    String   @db.VarChar
+  latitude  Float?
+  longitude Float?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  createdBy String   @map("created_by")
+  branches  Branch[]
+  user      User[]
+
+  @@map("addresses")
+}
+
+model User {
+  id                  Int                      @id @default(autoincrement())
+  addressId           Int?                     @map("address_id")
+  numberDocument      String                   @unique @map("number_document")
+  typeDocument        TypeDocument             @default(dni) @map("type_document")
+  name                String                   @db.VarChar
+  lastName            String                   @map("last_name") @db.VarChar
+  gender              Gender
+  birthDate           DateTime
+  heightCm            Float?                   @map("height_cm") // altura en cm
+  fitnessGoal         FitnessGoal              @default(maintain)
+  password            String
+  active              Boolean                  @default(true)
+  createdAt           DateTime                 @default(now()) @map("created_at")
+  updatedAt           DateTime                 @default(now()) @updatedAt @map("updated_at")
+  createdBy           String                   @map("created_by")
+  address             Address?                 @relation(fields: [addressId], references: [id])
+  authSessions        AuthSession[]
+  roles               UserRole[]
+  authProviders       AuthProvider[]
+  payments            Payment[]
+  userSubscription    UserSubscriptionBranch[]
+  userSubscriptionApp UserSubscriptionApp[]
+  weightRecord        WeightRecord[]
+  workoutLog          WorkoutLog[]
+  userRoutines        UserRoutine[]
+
+  @@map("users")
+}
+
+model WeightRecord {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @map("user_id")
+  date       DateTime @default(now())
+  weightKg   Float    @map("weight_kg")
+  fatPercent Float?   @map("fat_percent") // si tienes bioimpedancia o el usuario lo reporta
+  note       String? // ej: "subí peso después de vacaciones"
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
+  createdBy  String   @map("created_by")
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@map("weight_records")
+}
+
+model WorkoutLog {
+  id          Int               @id @default(autoincrement())
+  userId      Int               @map("user_id")
+  date        DateTime          @default(now())
+  routineId   Int               @map("routine_id")
+  completed   Boolean           @default(true)
+  feedback    String? // ej: "me gustó", "muy difícil"
+  durationMin Int?              @map("duration_min") // duración en minutos
+  intensity   WorkoutIntensity? // enum: low, medium, high
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @default(now()) @updatedAt @map("updated_at")
+  createdBy   String            @map("created_by")
+  user        User              @relation(fields: [userId], references: [id])
+  routine     Routine           @relation(fields: [routineId], references: [id])
+
+  @@map("workout_logs")
+}
+
+model Routine {
+  id            Int           @id @default(autoincrement())
+  name          String
+  goal          FitnessGoal // qué objetivo cubre
+  level         RoutineLevel
+  genderTarget  Gender?       @map("gender_target") // opcional: male, female, all
+  description   String?
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @default(now()) @updatedAt @map("updated_at")
+  createdBy     String        @map("created_by")
+  logs          WorkoutLog[]
+  routineDays   RoutineDay[] // ejercicios por día (ej: lunes, miércoles...)
+  assignedUsers UserRoutine[]
+
+  @@map("routines")
+}
+
+model RoutineDay {
+  id         Int         @id @default(autoincrement())
+  routineId  Int         @map("routine_id")
+  dayOfWeek  Int         @map("day_of_week") // 1 = lunes, 2 = martes...
+  exercises  String[] // Lista de ejercicios del día
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @default(now()) @updatedAt @map("updated_at")
+  createdBy  String      @map("created_by")
+  Routine    Routine     @relation(fields: [routineId], references: [id])
+  equipments Equipment[] // Lista de equipo necesario para ese día
+
+  @@map("routine_days")
+}
+
+model UserRoutine {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @map("user_id")
+  routineId Int       @map("routine_id")
+  isActive  Boolean   @default(true)
+  startedAt DateTime  @default(now()) @map("started_at")
+  endedAt   DateTime? @map("ended_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at")
+  createdBy String    @map("created_by")
+  user      User      @relation(fields: [userId], references: [id])
+  routine   Routine   @relation(fields: [routineId], references: [id])
+
+  @@map("user_routines")
+}
+
+model AuthProvider {
+  id         Int              @id @default(autoincrement())
+  userId     Int              @map("user_id")
+  provider   AuthProviderType // google, facebook, apple, email
+  providerId String? // el ID del usuario en ese proveedor externo (por ejemplo el "sub" de Google)
+  email      String? // puede coincidir o no con el email principal del usuario
+  verified   Boolean          @default(false)
+  active     Boolean          @default(true)
+  createdAt  DateTime         @default(now()) @map("created_at")
+  updatedAt  DateTime         @default(now()) @updatedAt @map("updated_at")
+  createdBy  String           @map("created_by")
+  user       User             @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerId])
+  @@map("auth_providers")
+}
+
+model AuthSession {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  token     String   @unique
+  ipAddress String   @map("ip_address")
+  userAgent String   @map("user_agent")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  revokedAt DateTime @updatedAt @map("revoked_at")
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("auth_sessions")
+}
+
+model Role {
+  id          Int          @id @default(autoincrement())
+  tenantId    Int          @map("tenant_id")
+  name        String
+  description String?
+  isProtected Boolean      @default(false) @map("is_protected")
+  active      Boolean      @default(true)
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @default(now()) @updatedAt @map("updated_at")
+  createdBy   String       @map("created_by")
+  tenant      Tenant       @relation(fields: [tenantId], references: [id])
+  permissions Permission[]
+  userRoles   UserRole[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  roleId    Int      @map("role_id")
+  branchId  Int      @map("branch_id")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  createdBy String   @map("created_by")
+  user      User     @relation(fields: [userId], references: [id])
+  role      Role     @relation(fields: [roleId], references: [id])
+  branch    Branch   @relation(fields: [branchId], references: [id])
+  class     Class[]  @relation("trainer_classes")
+
+  @@map("user_roles")
+}
+
+model Permission {
+  id         Int         @id @default(autoincrement())
+  action     TypeAction
+  subject    String
+  inverted   Boolean     @default(false)
+  reason     String?     @db.Text
+  active     Boolean     @default(true)
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @default(now()) @updatedAt @map("updated_at")
+  createdBy  String      @map("created_by")
+  roles      Role[]
+  conditions Condition[]
+
+  @@map("permissions")
+}
+
+model Condition {
+  id           Int               @id @default(autoincrement())
+  permissionId Int               @map("permission_id")
+  field        String
+  operator     ConditionOperator
+  value        String
+  active       Boolean           @default(true)
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @default(now()) @updatedAt @map("updated_at")
+  createdBy    String            @map("created_by")
+  permission   Permission        @relation(fields: [permissionId], references: [id])
+
+  @@map("conditions")
+}
+
+model UserSubscriptionBranch {
+  id        Int                @id @default(autoincrement())
+  userId    Int
+  planId    Int
+  startDate DateTime           @default(now())
+  endDate   DateTime
+  status    SubscriptionStatus @default(active)
+  active    Boolean            @default(true)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @default(now()) @updatedAt
+  createdBy String             @map("created_by")
+  user      User               @relation(fields: [userId], references: [id])
+  plan      Plan               @relation(fields: [planId], references: [id])
+
+  @@map("user_subscription_branches")
+}
+
+model Payment {
+  id            Int                  @id @default(autoincrement())
+  userId        Int                  @map("user_id")
+  amount        Float
+  currency      String               @default("BOB")
+  provider      PaymentProvider
+  providerId    String? // ID del proveedor externo (Stripe, MP, QR, etc.)
+  referenceType PaymentReferenceType
+  referenceId   Int? // ID del objeto relacionado (ej. suscripción, promoción, etc.)
+  status        PaymentStatus        @default(pending)
+  description   String? // Ej. “Pago por ingreso diario al Gym X”
+  paidAt        DateTime?
+  active        Boolean              @default(true)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @default(now()) @updatedAt
+  createdBy     String               @map("created_by")
+  user          User                 @relation(fields: [userId], references: [id])
+  invoice       Invoice?
+
+  @@map("payments")
+}
+
+model Invoice {
+  id          Int      @id @default(autoincrement())
+  paymentId   Int?     @unique @map("payment_id")
+  number      String?  @unique // Ej: "F001-00023"
+  issueDate   DateTime @default(now()) @map("issue_date")
+  totalAmount Float
+  taxAmount   Float?   @default(0)
+  details     String?  @db.Text
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+  createdBy   String   @map("created_by")
+
+  payment Payment? @relation(fields: [paymentId], references: [id])
+
+  @@map("invoices")
+}
+
+model UserSubscriptionApp {
+  id        Int                @id @default(autoincrement())
+  userId    Int
+  startDate DateTime           @default(now())
+  endDate   DateTime
+  status    SubscriptionStatus @default(active)
+  planType  AppPlanType        @default(basic)
+  amount    Float?
+  active    Boolean            @default(true)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @default(now()) @updatedAt
+  user      User               @relation(fields: [userId], references: [id])
+
+  @@map("user_subscription_app")
+}
+
+// ENUMUS SECTIONS
+enum WorkoutIntensity {
+  low
+  medium
+  high
+}
+
+enum RoutineLevel {
+  beginner
+  intermediate
+  advanced
+}
+
+enum Gender {
+  male
+  female
+  other
+}
+
+enum FitnessGoal {
+  lose_weight
+  gain_muscle
+  maintain
+  improve_endurance
+}
+
+enum AppPlanType {
+  free
+  basic
+  premium
+}
+
+enum SubscriptionStatus {
+  active
+  paused
+  expired
+  cancelled
+}
+
+enum PaymentReferenceType {
+  subscription_branch
+  daily_entry_branch
+  promotion_branch
+  subscription_app
+  other
+}
+
+enum PaymentProvider {
+  manual
+  mercadopago
+  stripe
+  paypal
+  qr
+}
+
+enum PaymentStatus {
+  pending
+  success
+  failed
+  refunded
+  cancelled
+}
+
+enum AuthProviderType {
+  email
+  google
+  facebook
+  apple
+  phone
+}
+
+enum TypeDocument {
+  dni
+  passport
+  driver_license
+  other
+}
+
+enum TypeAction {
+  leer
+  crear
+  editar
+  eliminar
+}
+
+enum ConditionOperator {
+  equals // es igual
+  not_equals // no es igual
+  in // está dentro de una lista de valores
+  not_in // no está dentro de una lista de valores
+  greater_than // es mayor que
+  greater_than_or_equal // es mayor o igual que
+  less_than // es menor que
+  less_than_or_equal // es menor o igual que
+  contains // contiene un valor (usado en cadenas de texto o arrays)
+  starts_with // empieza con un valor (solo para strings)
+  ends_with // termina con un valor (solo para strings)
+  exists // verifica si el campo existe o no (útil para valores opcionales)
+  between
+}
