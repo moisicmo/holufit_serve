@@ -8,6 +8,32 @@ export const UserSelect = {
   birthDate: true,
   authProviders: true,
   weightRecords: true,
-  habis: true,
-  dailyActivities: true,
+  habis: {
+    select: {
+      id: true,
+      title: true,
+      type: true,
+      progress: {
+        select: {
+          id: true,
+          status: true,
+          createdAt: true,
+        }
+      }
+    }
+  },
+  dailyActivities: {
+    select: {
+      id: true,
+      title: true,
+      time: true,
+      progress: {
+        select: {
+          id: true,
+          status: true,
+          createdAt: true,
+        }
+      }
+    }
+  },
 };
