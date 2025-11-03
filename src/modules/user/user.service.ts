@@ -3,6 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '@/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { HabitType } from '@prisma/client';
 
 @Injectable()
 export class UserService {
@@ -11,7 +12,7 @@ export class UserService {
   ) { }
 
   async create(createUserDto: CreateUserDto) {
-    const { provider, email, ...rest } = createUserDto;
+    const { provider, email, height, weight, habits, doMore, doLess, activities, ...rest } = createUserDto;
 
     const normalizedEmail = email.toLowerCase();
 
@@ -51,6 +52,45 @@ export class UserService {
           createdBy: normalizedEmail,
         }
       });
+
+      await this.prisma.weightRecord.create({
+        data: {
+          userId: user.id,
+          heightCm: height,
+          weightKg: weight,
+          createdBy: normalizedEmail,
+        }
+      });
+
+
+      await this.prisma.userHabit.createMany({
+        data: [
+          ...habits.map((e) => ({
+            userId: user.id,
+            title: e,
+          })),
+          ...doMore.map((e) => ({
+            userId: user.id,
+            title: e,
+            type: HabitType.do_more
+          })),
+          ...doLess.map((e) => ({
+            userId: user.id,
+            title: e,
+            type: HabitType.do_less
+          })),
+        ]
+      });
+
+      await this.prisma.dailyActivity.createMany({
+        data: activities.map((e) => ({
+          userId: user.id,
+          title: e.title,
+          time: e.time,
+        })),
+      });
+
+
 
       return user;
 

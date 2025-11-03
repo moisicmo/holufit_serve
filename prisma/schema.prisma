@@ -191,6 +191,8 @@ model User {
   userSubscription    UserSubscriptionBranch[]
   userSubscriptionApp UserSubscriptionApp[]
   weightRecord        WeightRecord[]
+  habis               UserHabit[]
+  dailyActivities     DailyActivity[]
   workoutLog          WorkoutLog[]
   userRoutines        UserRoutine[]
 
@@ -198,18 +200,63 @@ model User {
 }
 
 model WeightRecord {
-  id         Int      @id @default(autoincrement())
-  userId     Int      @map("user_id")
-  date       DateTime @default(now())
-  weightKg   Float    @map("weight_kg")
-  fatPercent Float?   @map("fat_percent") // si tienes bioimpedancia o el usuario lo reporta
-  note       String? // ej: "subí peso después de vacaciones"
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
-  createdBy  String   @map("created_by")
-  user       User     @relation(fields: [userId], references: [id])
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  weightKg  Float    @map("weight_kg")
+  heightCm  Int
+  note      String? // ej: "subí peso después de vacaciones"
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  createdBy String   @map("created_by")
+  user      User     @relation(fields: [userId], references: [id])
 
   @@map("weight_records")
+}
+
+model UserHabit {
+  id        Int             @id @default(autoincrement())
+  userId    Int             @map("user_id")
+  title     String
+  createdAt DateTime        @default(now()) @map("created_at")
+  type      HabitType       @default(general)
+  user      User            @relation(fields: [userId], references: [id])
+  progress  HabitProgress[]
+
+  @@map("user_habits")
+}
+
+model DailyActivity {
+  id        Int                @id @default(autoincrement())
+  userId    Int                @map("user_id")
+  title     String
+  time      String
+  createdAt DateTime           @default(now()) @map("created_at")
+  user      User               @relation(fields: [userId], references: [id])
+  progress  ActivityProgress[]
+
+  @@map("daily_activities")
+}
+
+model HabitProgress {
+  id        Int            @id @default(autoincrement())
+  habitId   Int            @map("habit_id")
+  status    ProgressStatus
+  createdAt DateTime       @default(now())
+  habit     UserHabit      @relation(fields: [habitId], references: [id])
+
+  @@unique([habitId, createdAt])
+  @@map("habit_progresses")
+}
+
+model ActivityProgress {
+  id         Int            @id @default(autoincrement())
+  activityId Int            @map("activity_id")
+  status     ProgressStatus
+  createdAt  DateTime       @default(now())
+  activity   DailyActivity  @relation(fields: [activityId], references: [id])
+
+  @@unique([activityId, createdAt])
+  @@map("activity_progresses")
 }
 
 model WorkoutLog {
@@ -448,6 +495,17 @@ model UserSubscriptionApp {
 }
 
 // ENUMUS SECTIONS
+enum HabitType {
+  general // hábitos principales
+  do_more // hacer más
+  do_less // hacer menos
+}
+
+enum ProgressStatus {
+  done
+  not_done
+}
+
 enum WorkoutIntensity {
   low
   medium

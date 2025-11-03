@@ -1,4 +1,10 @@
 -- CreateEnum
+CREATE TYPE "HabitType" AS ENUM ('general', 'do_more', 'do_less');
+
+-- CreateEnum
+CREATE TYPE "ProgressStatus" AS ENUM ('done', 'not_done');
+
+-- CreateEnum
 CREATE TYPE "WorkoutIntensity" AS ENUM ('low', 'medium', 'high');
 
 -- CreateEnum
@@ -202,13 +208,55 @@ CREATE TABLE "weight_records" (
     "user_id" INTEGER NOT NULL,
     "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "weight_kg" DOUBLE PRECISION NOT NULL,
-    "fat_percent" DOUBLE PRECISION,
+    "weightCm" INTEGER NOT NULL,
     "note" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "created_by" TEXT NOT NULL,
 
     CONSTRAINT "weight_records_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "user_habits" (
+    "id" SERIAL NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "title" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "type" "HabitType" NOT NULL DEFAULT 'general',
+
+    CONSTRAINT "user_habits_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "daily_activities" (
+    "id" SERIAL NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "title" TEXT NOT NULL,
+    "time" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "daily_activities_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "habit_progresses" (
+    "id" SERIAL NOT NULL,
+    "habit_id" INTEGER NOT NULL,
+    "status" "ProgressStatus" NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "habit_progresses_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "activity_progresses" (
+    "id" SERIAL NOT NULL,
+    "activity_id" INTEGER NOT NULL,
+    "status" "ProgressStatus" NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "activity_progresses_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -462,6 +510,12 @@ CREATE UNIQUE INDEX "branch_equipments_branch_id_equipment_id_key" ON "branch_eq
 CREATE UNIQUE INDEX "users_number_document_key" ON "users"("number_document");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "habit_progresses_habit_id_createdAt_key" ON "habit_progresses"("habit_id", "createdAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "activity_progresses_activity_id_createdAt_key" ON "activity_progresses"("activity_id", "createdAt");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "auth_providers_provider_providerId_key" ON "auth_providers"("provider", "providerId");
 
 -- CreateIndex
@@ -514,6 +568,18 @@ ALTER TABLE "users" ADD CONSTRAINT "users_address_id_fkey" FOREIGN KEY ("address
 
 -- AddForeignKey
 ALTER TABLE "weight_records" ADD CONSTRAINT "weight_records_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "user_habits" ADD CONSTRAINT "user_habits_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "daily_activities" ADD CONSTRAINT "daily_activities_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "habit_progresses" ADD CONSTRAINT "habit_progresses_habit_id_fkey" FOREIGN KEY ("habit_id") REFERENCES "user_habits"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "activity_progresses" ADD CONSTRAINT "activity_progresses_activity_id_fkey" FOREIGN KEY ("activity_id") REFERENCES "daily_activities"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "workout_logs" ADD CONSTRAINT "workout_logs_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

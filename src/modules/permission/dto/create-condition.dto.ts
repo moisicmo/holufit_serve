@@ -3,14 +3,14 @@ import { ConditionOperator } from "@prisma/client";
 import { IsEnum, IsOptional, IsString } from "class-validator";
 
 export class CreateConditionDto {
-  
+
   @ApiPropertyOptional({
     description: 'Campo a comparar (por ejemplo "branchId" o "hour")',
     example: 'hour',
   })
   @IsString()
   field: string;
-  
+
   @ApiPropertyOptional({
     description: 'Operador de comparación',
     example: 'between',
@@ -18,12 +18,12 @@ export class CreateConditionDto {
   })
   @IsEnum(ConditionOperator)
   operator: ConditionOperator;
-  
+
   @ApiPropertyOptional({
     description: 'Valor esperado (string, número o JSON string)',
     example: '[8,20]',
   })
-  
+
   @IsOptional()
   id?: number;
 
