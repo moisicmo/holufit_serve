@@ -191,7 +191,6 @@ CREATE TABLE "users" (
     "last_name" VARCHAR NOT NULL,
     "gender" "Gender" NOT NULL,
     "birthDate" TIMESTAMP(3) NOT NULL,
-    "height_cm" DOUBLE PRECISION,
     "fitnessGoal" "FitnessGoal" NOT NULL DEFAULT 'maintain',
     "password" TEXT NOT NULL,
     "active" BOOLEAN NOT NULL DEFAULT true,
@@ -206,9 +205,8 @@ CREATE TABLE "users" (
 CREATE TABLE "weight_records" (
     "id" SERIAL NOT NULL,
     "user_id" INTEGER NOT NULL,
-    "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "weight_kg" DOUBLE PRECISION NOT NULL,
-    "weightCm" INTEGER NOT NULL,
+    "height_cm" DOUBLE PRECISION NOT NULL,
     "note" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

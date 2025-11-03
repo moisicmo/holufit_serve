@@ -176,7 +176,6 @@ model User {
   lastName            String                   @map("last_name") @db.VarChar
   gender              Gender
   birthDate           DateTime
-  heightCm            Float?                   @map("height_cm") // altura en cm
   fitnessGoal         FitnessGoal              @default(maintain)
   password            String
   active              Boolean                  @default(true)
@@ -190,7 +189,7 @@ model User {
   payments            Payment[]
   userSubscription    UserSubscriptionBranch[]
   userSubscriptionApp UserSubscriptionApp[]
-  weightRecord        WeightRecord[]
+  weightRecords       WeightRecord[]
   habis               UserHabit[]
   dailyActivities     DailyActivity[]
   workoutLog          WorkoutLog[]
@@ -203,7 +202,7 @@ model WeightRecord {
   id        Int      @id @default(autoincrement())
   userId    Int      @map("user_id")
   weightKg  Float    @map("weight_kg")
-  heightCm  Int
+  heightCm  Float    @map("height_cm") // altura en cm
   note      String? // ej: "subí peso después de vacaciones"
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")

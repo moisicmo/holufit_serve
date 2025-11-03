@@ -154,7 +154,6 @@ async function main() {
         password: bcrypt.hashSync(password, salt),
         gender: Gender.female,
         birthDate: new Date('1999-05-15'),
-        heightCm: 165,
         createdBy: email,
       },
     });

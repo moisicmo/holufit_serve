@@ -4,6 +4,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '@/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { HabitType } from '@prisma/client';
+import { UserSelect } from './entities/user.entity';
 
 @Injectable()
 export class UserService {
@@ -107,8 +108,25 @@ export class UserService {
     return `This action returns all user`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: number) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id },
+        select: UserSelect,
+      });
+
+      if (!user) {
+        throw new BadRequestException('El usuario no existe');
+      }
+
+      return user;
+
+    } catch (error) {
+      console.error('❌ Error en UserService.findOne():', error);
+
+      if (error instanceof BadRequestException) throw error;
+      throw new InternalServerErrorException('Hubo un error al consultar el usuario');
+    }
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
