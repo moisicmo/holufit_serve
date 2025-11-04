@@ -242,7 +242,9 @@ CREATE TABLE "habit_progresses" (
     "id" SERIAL NOT NULL,
     "habit_id" INTEGER NOT NULL,
     "status" "ProgressStatus" NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_by" TEXT NOT NULL,
 
     CONSTRAINT "habit_progresses_pkey" PRIMARY KEY ("id")
 );
@@ -508,7 +510,7 @@ CREATE UNIQUE INDEX "branch_equipments_branch_id_equipment_id_key" ON "branch_eq
 CREATE UNIQUE INDEX "users_number_document_key" ON "users"("number_document");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "habit_progresses_habit_id_createdAt_key" ON "habit_progresses"("habit_id", "createdAt");
+CREATE UNIQUE INDEX "habit_progresses_habit_id_created_at_key" ON "habit_progresses"("habit_id", "created_at");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "activity_progresses_activity_id_createdAt_key" ON "activity_progresses"("activity_id", "createdAt");

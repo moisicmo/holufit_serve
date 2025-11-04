@@ -240,7 +240,9 @@ model HabitProgress {
   id        Int            @id @default(autoincrement())
   habitId   Int            @map("habit_id")
   status    ProgressStatus
-  createdAt DateTime       @default(now())
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @default(now()) @updatedAt @map("updated_at")
+  createdBy String         @map("created_by")
   habit     UserHabit      @relation(fields: [habitId], references: [id])
 
   @@unique([habitId, createdAt])
