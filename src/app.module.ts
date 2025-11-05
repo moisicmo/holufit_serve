@@ -15,6 +15,7 @@ import { GoogledriveModule } from './common/googledrive/googledrive.module';
 import { GmailModule } from './common/gmail/gmail.module';
 import { UserModule } from './modules/user/user.module';
 import { HabitModule } from './modules/habit/habit.module';
+import { ActivityModule } from './modules/activity/activity.module';
 @Module({
   imports: [
     PrismaModule,
@@ -29,6 +30,7 @@ import { HabitModule } from './modules/habit/habit.module';
     PlanModule,
     UserModule,
     HabitModule,
+    ActivityModule,
   ],
   providers: [
     PrismaService,
