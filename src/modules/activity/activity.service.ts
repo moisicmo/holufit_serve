@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateActivityDto } from './dto/create-activity.dto';
 import { UpdateActivityDto } from './dto/update-activity.dto';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -12,20 +12,32 @@ export class ActivityService {
 
   async create(email: string, createActivityDto: CreateActivityDto) {
     try {
-      const { activityId, status } = createActivityDto;
+      const { activityId, status, date } = createActivityDto;
 
-      // Obtener el inicio del día (00:00) y el final del día (23:59:59)
-      const today = new Date();
-      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+      // 🔹 Convertir la fecha enviada desde el cliente (ISO local → Date)
+      const targetDate = new Date(date);
 
-      // Buscar si ya existe progreso para este activityId hoy
+      // 🔹 Calcular el inicio y fin del día de esa fecha (00:00 a 23:59:59)
+      const startOfDay = new Date(
+        targetDate.getFullYear(),
+        targetDate.getMonth(),
+        targetDate.getDate(),
+        0, 0, 0, 0,
+      );
+      const endOfDay = new Date(
+        targetDate.getFullYear(),
+        targetDate.getMonth(),
+        targetDate.getDate(),
+        23, 59, 59, 999,
+      );
+
+      // 🔹 Buscar si ya existe progreso para este activityId en ese día
       const existing = await this.prisma.activityProgress.findFirst({
         where: {
           activityId,
           createdAt: {
             gte: startOfDay,
-            lt: endOfDay,
+            lte: endOfDay,
           },
         },
       });
@@ -62,6 +74,7 @@ export class ActivityService {
       throw new InternalServerErrorException('Hubo un error al registrar el progreso de la actividad');
     }
   }
+
 
 
 

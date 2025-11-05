@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { ProgressStatus } from "@prisma/client";
-import { IsEnum, IsNumber } from "class-validator";
+import { IsDateString, IsEnum, IsNumber } from "class-validator";
 
 export class CreateActivityDto {
   @IsNumber()
@@ -17,4 +17,11 @@ export class CreateActivityDto {
   })
   @IsEnum(ProgressStatus)
   status: ProgressStatus;
+
+  @ApiPropertyOptional({
+    description: 'Fecha local del usuario (día en que se registró la actividad)',
+    example: '2025-11-04T00:00:00.000',
+  })
+  @IsDateString()
+  date: string;
 }

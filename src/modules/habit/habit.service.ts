@@ -12,27 +12,42 @@ export class HabitService {
 
   async create(email: string, createHabitDto: CreateHabitDto) {
     try {
-      const { habitId, status } = createHabitDto;
+      const { habitId, status, date } = createHabitDto;
 
-      // Obtener la fecha de hoy a las 00:00 para comparar solo por día
-      const today = new Date();
-      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      // 🔹 Convertir la fecha enviada por el frontend (día local del usuario)
+      const targetDate = new Date(date);
 
-      // Buscar si ya existe progreso para este habitId hoy
+      // 🔹 Calcular el inicio y fin del día (00:00 a 23:59:59)
+      const startOfDay = new Date(
+        targetDate.getFullYear(),
+        targetDate.getMonth(),
+        targetDate.getDate(),
+        0, 0, 0, 0,
+      );
+      const endOfDay = new Date(
+        targetDate.getFullYear(),
+        targetDate.getMonth(),
+        targetDate.getDate(),
+        23, 59, 59, 999,
+      );
+
+      // 🔹 Buscar si ya existe un progreso para este hábito en esa fecha
       const existing = await this.prisma.habitProgress.findFirst({
         where: {
           habitId,
           createdAt: {
             gte: startOfDay,
-            lt: new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000),
+            lte: endOfDay,
           },
         },
       });
 
+      // 🔹 Si ya existe, no permitir otro registro
       if (existing) {
         throw new BadRequestException('Ya existe un registro de progreso para este hábito hoy.');
       }
 
+      // 🔹 Si no existe, crear un nuevo registro
       const habitProgress = await this.prisma.habitProgress.create({
         data: {
           habitId,
@@ -41,15 +56,19 @@ export class HabitService {
         },
       });
 
-      return habitProgress;
+      return {
+        message: 'Progreso del hábito registrado correctamente',
+        data: habitProgress,
+      };
 
     } catch (error) {
       console.error('❌ Error en habitProgress.create():', error);
 
       if (error instanceof BadRequestException) throw error;
-      throw new InternalServerErrorException('Hubo un error al crear el progreso del hábito');
+      throw new InternalServerErrorException('Hubo un error al registrar el progreso del hábito');
     }
   }
+
 
 
   findAll() {
