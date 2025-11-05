@@ -14,9 +14,10 @@ export class ActivityService {
     try {
       const { activityId, status } = createActivityDto;
 
-      // Obtener la fecha de hoy a las 00:00 para comparar solo por día
+      // Obtener el inicio del día (00:00) y el final del día (23:59:59)
       const today = new Date();
       const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
 
       // Buscar si ya existe progreso para este activityId hoy
       const existing = await this.prisma.activityProgress.findFirst({
@@ -24,15 +25,25 @@ export class ActivityService {
           activityId,
           createdAt: {
             gte: startOfDay,
-            lt: new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000),
+            lt: endOfDay,
           },
         },
       });
 
+      // 🔹 Si existe, actualizar el status
       if (existing) {
-        throw new BadRequestException('Ya existe un registro de progreso para esta actividad hoy.');
+        const updated = await this.prisma.activityProgress.update({
+          where: { id: existing.id },
+          data: { status },
+        });
+
+        return {
+          message: 'Progreso actualizado correctamente',
+          data: updated,
+        };
       }
 
+      // 🔹 Si no existe, crear nuevo registro
       const activityProgress = await this.prisma.activityProgress.create({
         data: {
           activityId,
@@ -40,15 +51,18 @@ export class ActivityService {
         },
       });
 
-      return activityProgress;
+      return {
+        message: 'Progreso registrado correctamente',
+        data: activityProgress,
+      };
 
     } catch (error) {
       console.error('❌ Error en activityProgress.create():', error);
 
-      if (error instanceof BadRequestException) throw error;
-      throw new InternalServerErrorException('Hubo un error al crear el progreso de la actrividad');
+      throw new InternalServerErrorException('Hubo un error al registrar el progreso de la actividad');
     }
   }
+
 
 
   findAll() {
