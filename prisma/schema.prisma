@@ -343,16 +343,17 @@ model AuthProvider {
 }
 
 model AuthSession {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @map("user_id")
-  token     String   @unique
-  ipAddress String   @map("ip_address")
-  userAgent String   @map("user_agent")
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
-  revokedAt DateTime @updatedAt @map("revoked_at")
-  user      User     @relation(fields: [userId], references: [id])
+  id           Int       @id @default(autoincrement())
+  userId       Int       @map("user_id")
+  accessToken  String?   @map("access_token")
+  refreshToken String    @unique @map("refresh_token")
+  ipAddress    String    @map("ip_address")
+  userAgent    String    @map("user_agent")
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at")
+  revokedAt    DateTime? @map("revoked_at")
+  user         User      @relation(fields: [userId], references: [id])
 
   @@map("auth_sessions")
 }

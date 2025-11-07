@@ -339,13 +339,14 @@ CREATE TABLE "auth_providers" (
 CREATE TABLE "auth_sessions" (
     "id" SERIAL NOT NULL,
     "user_id" INTEGER NOT NULL,
-    "token" TEXT NOT NULL,
+    "access_token" TEXT,
+    "refresh_token" TEXT NOT NULL,
     "ip_address" TEXT NOT NULL,
     "user_agent" TEXT NOT NULL,
     "active" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "revoked_at" TIMESTAMP(3) NOT NULL,
+    "revoked_at" TIMESTAMP(3),
 
     CONSTRAINT "auth_sessions_pkey" PRIMARY KEY ("id")
 );
@@ -519,7 +520,7 @@ CREATE UNIQUE INDEX "activity_progresses_activity_id_createdAt_key" ON "activity
 CREATE UNIQUE INDEX "auth_providers_provider_providerId_key" ON "auth_providers"("provider", "providerId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "auth_sessions_token_key" ON "auth_sessions"("token");
+CREATE UNIQUE INDEX "auth_sessions_refresh_token_key" ON "auth_sessions"("refresh_token");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "invoices_payment_id_key" ON "invoices"("payment_id");

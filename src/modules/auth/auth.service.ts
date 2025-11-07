@@ -83,13 +83,14 @@ export class AuthService {
         jti: randomUUID(),
       };
 
-      const token = this.signJWT(tokenPayload);
+      const token = this.signJWT(tokenPayload,'1m');
       const refreshToken = this.signJWT(tokenPayload, '1d');
 
       await this.prisma.authSession.create({
         data: {
           userId: user.id,
-          token,
+          accessToken: token,
+          refreshToken,
           userAgent,
           ipAddress,
         },
@@ -117,21 +118,48 @@ export class AuthService {
 
   }
 
-  refreshToken(createRefreshDto: CreateRefreshDto) {
+  async refreshToken(createRefreshDto: CreateRefreshDto, requestInfo: RequestInfo) {
+    const { refreshToken } = createRefreshDto;
+    const { ipAddress, userAgent } = requestInfo;
+
     try {
-      const payload = this.jwtService.verify(createRefreshDto.refreshToken);
-
+      const payload = this.jwtService.verify(refreshToken);
+      const session = await this.prisma.authSession.findUnique({
+        where: { refreshToken: refreshToken },
+      });
+      if (!session || !session.active) {
+        throw new UnauthorizedException('Sesión no válida o ya revocada');
+      }
+      await this.prisma.authSession.update({
+        where: { id: session.id },
+        data: {
+          active: false,
+          revokedAt: new Date(),
+        },
+      });
       const { exp: _, iat: __, nbf: ___, ...cleanPayload } = payload;
-
-      const newAccessToken = this.signJWT(cleanPayload);
-
-      return { token: newAccessToken };
-
+      const newAccessToken = this.signJWT(cleanPayload,'1m');
+      const newRefreshToken = this.signJWT(cleanPayload, '1d');
+      await this.prisma.authSession.create({
+        data: {
+          userId: cleanPayload.id,
+          accessToken: newAccessToken,
+          refreshToken: newRefreshToken,
+          userAgent,
+          ipAddress,
+          active: true,
+        },
+      });
+      return {
+        token: newAccessToken,
+        refreshToken: newRefreshToken,
+      };
     } catch (error) {
       console.error('refreshToken error:', error);
       throw new UnauthorizedException('Refresh token inválido o expirado');
     }
   }
+
 
   async sendPinEmail(idUser: string) {
     // try {
