@@ -13,6 +13,9 @@ interface EnvVars {
   GOOGLEDRIVE_ACCESS_TOKEN:string;
   GOOGLEDRIVE_REFRESH_TOKEN:string;
   GOOGLE_SENDER_EMAIL:string;
+  GOOGLE_CLIENT_ID:string;
+  GOOGLE_CLIENT_ID_IOS:string;
+  GOOGLE_CLIENT_ID_ANDROID:string;
 }
 
 const envsSchema = joi
@@ -28,6 +31,9 @@ const envsSchema = joi
     GOOGLEDRIVE_ACCESS_TOKEN: joi.string().required(),
     GOOGLEDRIVE_REFRESH_TOKEN: joi.string().required(),
     GOOGLE_SENDER_EMAIL: joi.string().required(),
+    GOOGLE_CLIENT_ID: joi.string().required(),
+    GOOGLE_CLIENT_ID_IOS: joi.string().required(),
+    GOOGLE_CLIENT_ID_ANDROID: joi.string().required(),
   })
   .unknown(true);
 
@@ -53,4 +59,7 @@ export const envs = {
   googledriveAccessToken: envVars.GOOGLEDRIVE_ACCESS_TOKEN,
   googledriveRefreshToken: envVars.GOOGLEDRIVE_REFRESH_TOKEN,
   googleSenderEmail: envVars.GOOGLE_SENDER_EMAIL,
+  googleClientId: envVars.GOOGLE_CLIENT_ID,
+  googleClientIdIos: envVars.GOOGLE_CLIENT_ID_IOS,
+  googleClientIdAndroid: envVars.GOOGLE_CLIENT_ID_ANDROID,
 };

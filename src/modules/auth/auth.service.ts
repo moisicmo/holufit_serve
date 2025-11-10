@@ -1,122 +1,132 @@
-import { Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { RequestInfo } from '@/decorator';
 import { PrismaService } from '@/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import { RoleSelect } from '@/modules/role/entities/role.entity';
-import { BranchSelect } from '@/modules/branch/entities/branch.entity';
 import * as bcrypt from 'bcrypt';
 import { JwtPayload } from './entities/jwt-payload.interface';
 import { CreateRefreshDto } from './dto/create-refresh.dto';
 import { randomUUID } from 'crypto';
-import { GmailService } from '@/common/gmail/gmail.service';
 import { ValidatePinDto } from './dto/validate-pin.dto';
+import { AuthProviderType } from '@prisma/client';
+import { GoogleAuthService } from '@/common/google/auth/google.auth.service';
+import { UserEntity, UserSelect } from '@/common';
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private readonly jwtService: JwtService,
-    private readonly gmailService: GmailService,
+    private readonly googleAuth: GoogleAuthService,
   ) { }
 
   signJWT(payload: JwtPayload, expiresIn?: string | number) {
     if (expiresIn) {
       return this.jwtService.sign(payload, {
-        expiresIn: expiresIn as any, // <-- aquí
+        expiresIn: expiresIn as any,
       });
     }
     return this.jwtService.sign(payload);
   }
 
   async login(createAuthDto: CreateAuthDto, requestInfo: RequestInfo) {
-    const { provider, email, password } = createAuthDto;
-    const { userAgent, ipAddress } = requestInfo;
-
+    const { provider } = createAuthDto;
+    console.log(provider);
     try {
-      const user = await this.prisma.user.findFirst({
-        where: {
-          authProviders: {
-            some: {
-              email: email,
-              provider: provider,
-            }
-          }
-        },
-        select: {
-          password: true,
-          id: true,
-          name: true,
-          lastName: true,
-          authProviders: {
-            select: {
-              email: true,
-            }
-          },
-          roles: {
-            select: {
-              role: {
-                select: RoleSelect,
-              },
-              branch: {
-                select: BranchSelect,
-              }
-            },
-          }
-        },
-      });
-
-      if (!user) {
-        throw new NotFoundException('Las credenciales no son válidas, por favor verifica tu correo y contraseña');
+      switch (provider) {
+        case AuthProviderType.email:
+          return await this.authLogin(createAuthDto, requestInfo);
+        case AuthProviderType.google:
+          return await this.authGoogle(createAuthDto, requestInfo);
+        default:
+          throw new BadRequestException('Proveedor no soportado');
       }
-
-      const isPasswordValid = bcrypt.compareSync(password, user.password);
-      if (!isPasswordValid) {
-        throw new UnauthorizedException('Las credenciales no son válidas, por favor verifica tu correo y contraseña');
-      }
-
-      const tokenPayload = {
-        id: user.id,
-        name: user.name,
-        lastName: user.lastName,
-        email: user.authProviders[0].email!,
-        jti: randomUUID(),
-      };
-
-      const token = this.signJWT(tokenPayload,'1m');
-      const refreshToken = this.signJWT(tokenPayload, '1d');
-
-      await this.prisma.authSession.create({
-        data: {
-          userId: user.id,
-          accessToken: token,
-          refreshToken,
-          userAgent,
-          ipAddress,
-        },
-      });
-
-      return {
-        ...tokenPayload,
-        token,
-        refreshToken,
-        role: user.roles,
-      };
-
     } catch (error) {
-      if (
-        error instanceof NotFoundException ||
-        error instanceof UnauthorizedException
-      ) {
-        throw error; // Propaga tal cual los errores esperados
+      console.error('❌ login error:', error);
+
+      if (error instanceof HttpException) {
+        throw error;
       }
 
-      // Otros errores inesperados sí se tratan como 500
-      console.error('Unexpected error in login:', error);
-      throw new InternalServerErrorException('Internal server error');
+      throw new InternalServerErrorException(
+        error.message || 'Error interno en el servicio de autenticación',
+      );
     }
-
   }
+
+
+  private async authLogin(createAuthDto: CreateAuthDto, requestInfo: RequestInfo) {
+    const { email, password } = createAuthDto;
+    if (!email || !password) {
+      throw new BadRequestException('Email y contraseña son requeridos');
+    }
+    const user = await this.prisma.user.findFirst({
+      where: {
+        authProviders: { some: { email } },
+      },
+      select: {
+        ...UserSelect,
+        password: true,
+      },
+    });
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+    if (!bcrypt.compareSync(password, user.password))
+      throw new UnauthorizedException('Contraseña incorrecta');
+    return await this.generateSession(user, user.authProviders[0].email!, requestInfo);
+  }
+
+  private async authGoogle(createAuthDto: CreateAuthDto, requestInfo: RequestInfo) {
+    const { idToken } = createAuthDto;
+    if (!idToken) throw new BadRequestException('Falta el idToken de Google');
+    const googleUser = await this.googleAuth.verifyToken(idToken);
+    console.log(googleUser)
+    const { email } = googleUser;
+    const user = await this.prisma.user.findFirst({
+      where: {
+        authProviders: { some: { email } },
+      },
+      select: UserSelect,
+    });
+    console.log(user);
+    if (!user) throw new NotFoundException({
+      message:'Usuario no encontrado',
+      googleUser
+    });
+    return await this.generateSession(user, email!, requestInfo);
+  }
+  private async generateSession(
+    user: UserEntity,
+    email: string,
+    requestInfo: RequestInfo) {
+    const { userAgent, ipAddress } = requestInfo;
+    const tokenPayload = {
+      id: user.id,
+      name: user.name,
+      lastName: user.lastName,
+      email,
+      jti: randomUUID(),
+    };
+
+    const token = this.signJWT(tokenPayload,'1m');
+    const refreshToken = this.signJWT(tokenPayload, '1d');
+
+    await this.prisma.authSession.create({
+      data: {
+        userId: user.id,
+        accessToken: token,
+        refreshToken,
+        userAgent,
+        ipAddress,
+      },
+    });
+
+    return {
+      ...tokenPayload,
+      token,
+      refreshToken,
+    };
+  }
+
 
   async refreshToken(createRefreshDto: CreateRefreshDto, requestInfo: RequestInfo) {
     const { refreshToken } = createRefreshDto;
@@ -138,7 +148,7 @@ export class AuthService {
         },
       });
       const { exp: _, iat: __, nbf: ___, ...cleanPayload } = payload;
-      const newAccessToken = this.signJWT(cleanPayload,'1m');
+      const newAccessToken = this.signJWT(cleanPayload, '1m');
       const newRefreshToken = this.signJWT(cleanPayload, '1d');
       await this.prisma.authSession.create({
         data: {

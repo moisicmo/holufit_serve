@@ -508,9 +508,6 @@ CREATE TABLE "_PermissionToRole" (
 CREATE UNIQUE INDEX "branch_equipments_branch_id_equipment_id_key" ON "branch_equipments"("branch_id", "equipment_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "users_number_document_key" ON "users"("number_document");
-
--- CreateIndex
 CREATE UNIQUE INDEX "habit_progresses_habit_id_created_at_key" ON "habit_progresses"("habit_id", "created_at");
 
 -- CreateIndex
