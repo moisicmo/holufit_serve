@@ -107,7 +107,7 @@ export class AuthService {
       jti: randomUUID(),
     };
 
-    const token = this.signJWT(tokenPayload,'1m');
+    const token = this.signJWT(tokenPayload);
     const refreshToken = this.signJWT(tokenPayload, '1d');
 
     await this.prisma.authSession.create({
@@ -148,7 +148,7 @@ export class AuthService {
         },
       });
       const { exp: _, iat: __, nbf: ___, ...cleanPayload } = payload;
-      const newAccessToken = this.signJWT(cleanPayload, '1m');
+      const newAccessToken = this.signJWT(cleanPayload);
       const newRefreshToken = this.signJWT(cleanPayload, '1d');
       await this.prisma.authSession.create({
         data: {
