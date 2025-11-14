@@ -170,6 +170,7 @@ model Address {
 model User {
   id                  Int                      @id @default(autoincrement())
   addressId           Int?                     @map("address_id")
+  image               String
   numberDocument      String                   @map("number_document")
   typeDocument        TypeDocument             @default(dni) @map("type_document")
   name                String                   @db.VarChar

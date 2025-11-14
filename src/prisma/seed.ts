@@ -145,9 +145,11 @@ async function main() {
     const lastName = 'arias';
     const email = 'shirley.arias.mo@gmail.com';
     const password = '123123';
+    const image = '';
 
     const user = await prisma.user.create({
       data: {
+        image: 'https://holufitserve-production.up.railway.app/static/animals/crocodile.png',
         numberDocument: numberDocument,
         name: name,
         lastName: lastName,

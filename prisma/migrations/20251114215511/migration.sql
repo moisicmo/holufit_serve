@@ -185,6 +185,7 @@ CREATE TABLE "addresses" (
 CREATE TABLE "users" (
     "id" SERIAL NOT NULL,
     "address_id" INTEGER,
+    "image" TEXT NOT NULL,
     "number_document" TEXT NOT NULL,
     "type_document" "TypeDocument" NOT NULL DEFAULT 'dni',
     "name" VARCHAR NOT NULL,

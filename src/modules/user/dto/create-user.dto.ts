@@ -31,6 +31,10 @@ export class CreateUserDto {
   provider: AuthProviderType;
 
   @IsString()
+  @ApiProperty({ example: 'https://holufitserve-production.up.railway.app/static/animals/crocodile.png', description: 'url de la imagen' })
+  image: string;
+
+  @IsString()
   @ApiProperty({ example: 'maria', description: 'Nombre del usuario' })
   name: string;
 
