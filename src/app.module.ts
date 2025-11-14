@@ -16,6 +16,7 @@ import { GmailModule } from './common/gmail/gmail.module';
 import { UserModule } from './modules/user/user.module';
 import { HabitModule } from './modules/habit/habit.module';
 import { ActivityModule } from './modules/activity/activity.module';
+import { AnimalsModule } from './modules/animals/animals.module';
 @Module({
   imports: [
     PrismaModule,
@@ -31,6 +32,7 @@ import { ActivityModule } from './modules/activity/activity.module';
     UserModule,
     HabitModule,
     ActivityModule,
+    AnimalsModule,
   ],
   providers: [
     PrismaService,
