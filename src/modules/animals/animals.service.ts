@@ -11,7 +11,7 @@ export class AnimalsService {
     const files = readdirSync(animalsDir);
 
     // Opcional: filtrar solo imágenes .png o .jpg
-    const images = files.filter(file => file.endsWith('.png') || file.endsWith('.jpg'));
+    const images = files.filter(file => file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.webp'));
 
     return images.map(file => `${baseUrl}/${file}`);
   }
