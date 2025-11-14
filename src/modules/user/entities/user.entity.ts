@@ -2,6 +2,7 @@ export const UserSelect = {
   id: true,
   numberDocument: true,
   typeDocument: true,
+  image: true,
   name: true,
   lastName: true,
   gender: true,
