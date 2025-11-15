@@ -138,7 +138,11 @@ export class UserService {
       doMore,
       doLess,
       activities,
-      ...rest
+      image,
+      name,
+      lastName,
+      numberDocument,
+      birthDate,
     } = updateUserDto;
 
     const normalizedEmail = email?.toLowerCase();
@@ -151,7 +155,12 @@ export class UserService {
       await this.prisma.user.update({
         where: { id },
         data: {
-          ...rest,
+          ...(image !== undefined && { image: image }),
+          ...(name !== undefined && { name: name }),
+          ...(lastName !== undefined && { lastName: lastName }),
+          ...(numberDocument !== undefined && { numberDocument: numberDocument }),
+          ...(birthDate !== undefined && { birthDate: birthDate }),
+          ...(birthDate !== undefined && { birthDate: birthDate }),
         },
       });
       // Registrar nuevo proveedor de autenticación
