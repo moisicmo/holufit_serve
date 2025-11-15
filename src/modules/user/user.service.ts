@@ -157,12 +157,12 @@ export class UserService {
       await this.prisma.user.update({
         where: { id },
         data: {
-          ...(image !== undefined && { image: image }),
-          ...(name !== undefined && { name: name }),
-          ...(lastName !== undefined && { lastName: lastName }),
-          ...(numberDocument !== undefined && { numberDocument: numberDocument }),
-          ...(birthDate !== undefined && { birthDate: birthDate }),
-        },
+          ...(image !== undefined && image !== null && { image }),
+          ...(name !== undefined && name !== null && { name }),
+          ...(lastName !== undefined && lastName !== null && { lastName }),
+          ...(numberDocument !== undefined && numberDocument !== null && { numberDocument }),
+          ...(birthDate !== undefined && birthDate !== null && { birthDate }),
+        }
       });
       // Registrar nuevo proveedor de autenticación
       if (normalizedEmail && provider) {
