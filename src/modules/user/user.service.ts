@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -91,9 +91,8 @@ export class UserService {
         })),
       });
 
-
-
-      return user;
+      const newUser = await this.findOne(user.id);
+      return newUser;
 
     } catch (error) {
       console.error('❌ Error en UserService.create():', error);
@@ -129,9 +128,88 @@ export class UserService {
     }
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    const {
+      email,
+      provider,
+      height,
+      weight,
+      habits,
+      doMore,
+      doLess,
+      activities,
+      ...rest
+    } = updateUserDto;
+
+    const normalizedEmail = email?.toLowerCase();
+
+    try {
+      const user = await this.findOne(id);
+      if (!user) throw new NotFoundException('Usuario no encontrado');
+
+      // Actualizar campos básicos del usuario
+      await this.prisma.user.update({
+        where: { id },
+        data: {
+          ...rest,
+        },
+      });
+      // Registrar nuevo proveedor de autenticación
+      if (normalizedEmail && provider) {
+        await this.prisma.authProvider.create({
+          data: {
+            userId: id,
+            provider,
+            email: normalizedEmail,
+            createdBy: normalizedEmail,
+          },
+        });
+      }
+      // Registrar nuevo peso/talla
+      if (normalizedEmail && height && weight) {
+        await this.prisma.weightRecord.create({
+          data: {
+            userId: id,
+            heightCm: height,
+            weightKg: weight,
+            createdBy: normalizedEmail,
+          },
+        });
+      }
+      // Actualizar hábitos
+      if (habits || doMore || doLess) {
+        await this.prisma.userHabit.deleteMany({ where: { userId: id } });
+        await this.prisma.userHabit.createMany({
+          data: [
+            ...(habits ?? []).map((title) => ({ userId: id, title })),
+            ...(doMore ?? []).map((title) => ({ userId: id, title, type: 'do_more' })),
+            ...(doLess ?? []).map((title) => ({ userId: id, title, type: 'do_less' })),
+          ],
+        });
+      }
+      // Actualizar actividades diarias
+      if (activities) {
+        await this.prisma.dailyActivity.deleteMany({ where: { userId: id } });
+
+        await this.prisma.dailyActivity.createMany({
+          data: activities.map((a) => ({
+            userId: id,
+            title: a.title,
+            time: a.time,
+          })),
+        });
+      }
+
+      const userUpdated = await this.findOne(id);
+      return userUpdated;
+    } catch (error) {
+      console.error('❌ Error en UserService.update():', error);
+      if (error instanceof NotFoundException) throw error;
+      throw new InternalServerErrorException('Hubo un error al actualizar el usuario');
+    }
   }
+
+
 
   remove(id: number) {
     return `This action removes a #${id} user`;
