@@ -129,6 +129,7 @@ export class UserService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
+    console.log(updateUserDto)
     const {
       email,
       provider,
@@ -143,6 +144,7 @@ export class UserService {
       lastName,
       numberDocument,
       birthDate,
+
     } = updateUserDto;
 
     const normalizedEmail = email?.toLowerCase();
@@ -159,7 +161,6 @@ export class UserService {
           ...(name !== undefined && { name: name }),
           ...(lastName !== undefined && { lastName: lastName }),
           ...(numberDocument !== undefined && { numberDocument: numberDocument }),
-          ...(birthDate !== undefined && { birthDate: birthDate }),
           ...(birthDate !== undefined && { birthDate: birthDate }),
         },
       });
