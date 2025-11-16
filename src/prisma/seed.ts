@@ -56,7 +56,7 @@ async function main() {
         },
       },
     });
-    
+
     await prisma.routine.create({
       data: {
         name: 'Rutina de pérdida de peso',
@@ -82,11 +82,11 @@ async function main() {
                 connect: [{ id: 2 }]
               }
             }
-           ],
+          ],
         },
       },
     });
-    
+
     await prisma.routine.create({
       data: {
         name: 'Rutina de tonificación',
@@ -104,11 +104,11 @@ async function main() {
                 connect: [{ id: 8 }, { id: 9 }]
               }
             }
-           ],
+          ],
         },
       },
     });
-    
+
     await prisma.routine.create({
       data: {
         name: 'Rutina de resistencia',
@@ -124,7 +124,7 @@ async function main() {
               createdBy: 'system',
               equipments: {
                 connect: [{ id: 3 }, { id: 4 }]
-              } 
+              }
             },
             {
               dayOfWeek: 5,
@@ -134,7 +134,7 @@ async function main() {
                 connect: [{ id: 1 }, { id: 2 }]
               }
             }
-           ],
+          ],
         },
       },
     });
@@ -145,11 +145,11 @@ async function main() {
     const lastName = 'arias';
     const email = 'shirley.arias.mo@gmail.com';
     const password = '123123';
-    const image = '';
+    const image = 'https://holufitserve-production.up.railway.app/static/animals/crocodile.png';
 
     const user = await prisma.user.create({
       data: {
-        image: 'https://holufitserve-production.up.railway.app/static/animals/crocodile.png',
+        image: image,
         numberDocument: numberDocument,
         name: name,
         lastName: lastName,
@@ -260,6 +260,25 @@ async function main() {
           planId: plan.id,
           createdBy: email,
         })),
+      ]
+    });
+    await prisma.radio.createMany({
+      data: [
+        {
+          stationUUID: '777d14b2-f344-11e9-a96c-52543be04c81',
+          name: 'Los 40 Dance',
+          url: 'http://playerservices.streamtheworld.com/api/livestream-redirect/LOS40_DANCE_SC',
+          resolvedUrl:'http://25443.live.streamtheworld.com:80/LOS40_DANCE_SC',
+          image: 'https://recursosweb.prisaradio.com/fotos/original/010002753887.png',
+          category: 'general',
+          genre: 'electro',
+          country: 'Spain',
+          bitrate: 128,
+          codec: 'MP3',
+          tags: ['dance','dance music','edm','electro','electronic','house'],
+          languages: ['es'],
+          createdBy: email,
+        },
       ]
     });
 

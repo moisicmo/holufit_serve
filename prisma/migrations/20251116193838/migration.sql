@@ -203,6 +203,48 @@ CREATE TABLE "users" (
 );
 
 -- CreateTable
+CREATE TABLE "radio_ratings" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "radioId" INTEGER NOT NULL,
+    "rating" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "radio_ratings_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "radios" (
+    "id" SERIAL NOT NULL,
+    "stationUUID" TEXT,
+    "name" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "resolvedUrl" TEXT,
+    "image" TEXT NOT NULL,
+    "category" TEXT NOT NULL,
+    "genre" TEXT NOT NULL,
+    "country" TEXT NOT NULL,
+    "description" TEXT,
+    "bitrate" INTEGER NOT NULL,
+    "codec" TEXT NOT NULL,
+    "isHls" BOOLEAN NOT NULL DEFAULT false,
+    "isOnline" BOOLEAN NOT NULL DEFAULT true,
+    "lastCheck" TIMESTAMP(3),
+    "lastCheckOk" BOOLEAN NOT NULL DEFAULT true,
+    "latitude" DOUBLE PRECISION,
+    "longitude" DOUBLE PRECISION,
+    "tags" TEXT[],
+    "languages" TEXT[],
+    "avgRating" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "ratingCount" INTEGER NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_by" TEXT NOT NULL,
+
+    CONSTRAINT "radios_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "weight_records" (
     "id" SERIAL NOT NULL,
     "user_id" INTEGER NOT NULL,
@@ -509,6 +551,9 @@ CREATE TABLE "_PermissionToRole" (
 CREATE UNIQUE INDEX "branch_equipments_branch_id_equipment_id_key" ON "branch_equipments"("branch_id", "equipment_id");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "radios_stationUUID_key" ON "radios"("stationUUID");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "habit_progresses_habit_id_created_at_key" ON "habit_progresses"("habit_id", "created_at");
 
 -- CreateIndex
@@ -564,6 +609,12 @@ ALTER TABLE "class_schedules" ADD CONSTRAINT "class_schedules_class_id_fkey" FOR
 
 -- AddForeignKey
 ALTER TABLE "users" ADD CONSTRAINT "users_address_id_fkey" FOREIGN KEY ("address_id") REFERENCES "addresses"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "radio_ratings" ADD CONSTRAINT "radio_ratings_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "radio_ratings" ADD CONSTRAINT "radio_ratings_radioId_fkey" FOREIGN KEY ("radioId") REFERENCES "radios"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "weight_records" ADD CONSTRAINT "weight_records_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

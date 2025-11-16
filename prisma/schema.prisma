@@ -195,8 +195,52 @@ model User {
   dailyActivities     DailyActivity[]
   workoutLog          WorkoutLog[]
   userRoutines        UserRoutine[]
+  radioRatings        RadioRating[]
 
   @@map("users")
+}
+
+model RadioRating {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  radioId   Int
+  rating    Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  radio     Radio    @relation(fields: [radioId], references: [id])
+
+  @@map("radio_ratings")
+}
+
+model Radio {
+  id          Int           @id @default(autoincrement())
+  stationUUID String?       @unique
+  name        String
+  url         String
+  resolvedUrl String?
+  image       String
+  category    String
+  genre       String
+  country     String
+  description String?
+  bitrate     Int
+  codec       String
+  isHls       Boolean       @default(false)
+  isOnline    Boolean       @default(true)
+  lastCheck   DateTime?
+  lastCheckOk Boolean       @default(true)
+  latitude    Float?
+  longitude   Float?
+  tags        String[]
+  languages   String[]
+  avgRating   Float         @default(0)
+  ratingCount Int           @default(0)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @default(now()) @updatedAt @map("updated_at")
+  createdBy   String        @map("created_by")
+  ratings     RadioRating[]
+
+  @@map("radios")
 }
 
 model WeightRecord {

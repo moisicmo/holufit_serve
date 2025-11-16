@@ -17,6 +17,8 @@ import { UserModule } from './modules/user/user.module';
 import { HabitModule } from './modules/habit/habit.module';
 import { ActivityModule } from './modules/activity/activity.module';
 import { AnimalsModule } from './modules/animals/animals.module';
+import { TenantModule } from './modules/tenant/tenant.module';
+import { RadioModule } from './modules/radio/radio.module';
 @Module({
   imports: [
     PrismaModule,
@@ -33,6 +35,8 @@ import { AnimalsModule } from './modules/animals/animals.module';
     HabitModule,
     ActivityModule,
     AnimalsModule,
+    TenantModule,
+    RadioModule,
   ],
   providers: [
     PrismaService,

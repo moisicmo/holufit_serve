@@ -6,4 +6,5 @@ export enum TypeSubject {
   tenant,
   branch,
   address,
+  radio,
 }
