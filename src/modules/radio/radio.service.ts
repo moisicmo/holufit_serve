@@ -37,13 +37,27 @@ export class RadioService {
   async findAll(paginationDto: PaginationDto): Promise<PaginationResult<RadioType>> {
     try {
       const { page = 1, limit = 10, keys = '' } = paginationDto;
-      console.log(page);
-      console.log(limit);
-      console.log(keys);
-      // 🔹 Armar el filtro final para Prisma
-      const whereClause: Prisma.RadioWhereInput = {
-        ...(keys ? { name: { contains: keys, mode: Prisma.QueryMode.insensitive } } : {}),
-      };
+      const whereClause: Prisma.RadioWhereInput = keys
+        ? {
+          OR: [
+            { name: { contains: keys, mode: "insensitive" } },
+            { genre: { contains: keys, mode: "insensitive" } },
+            { country: { contains: keys, mode: "insensitive" } },
+
+            // 🔍 Buscar en las categorías relacionadas
+            {
+              category: {
+                name: { contains: keys, mode: "insensitive" },
+              },
+            },
+            {
+              tags: {
+                has: keys.toLowerCase(),
+              },
+            },
+          ],
+        }
+        : {};
 
       // 🔹 Paginación
       const total = await this.prisma.radio.count({ where: whereClause });
