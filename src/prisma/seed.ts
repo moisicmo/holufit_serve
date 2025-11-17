@@ -262,20 +262,25 @@ async function main() {
         })),
       ]
     });
+    const radioCategory = await prisma.radioCategory.create({
+      data: {
+        name: 'general'
+      }
+    });
     await prisma.radio.createMany({
       data: [
         {
           stationUUID: '777d14b2-f344-11e9-a96c-52543be04c81',
           name: 'Los 40 Dance',
           url: 'http://playerservices.streamtheworld.com/api/livestream-redirect/LOS40_DANCE_SC',
-          resolvedUrl:'http://25443.live.streamtheworld.com:80/LOS40_DANCE_SC',
+          resolvedUrl: 'http://25443.live.streamtheworld.com:80/LOS40_DANCE_SC',
           image: 'https://recursosweb.prisaradio.com/fotos/original/010002753887.png',
-          category: 'general',
+          categoryId: radioCategory.id,
           genre: 'electro',
           country: 'Spain',
           bitrate: 128,
           codec: 'MP3',
-          tags: ['dance','dance music','edm','electro','electronic','house'],
+          tags: ['dance', 'dance music', 'edm', 'electro', 'electronic', 'house'],
           languages: ['es'],
           createdBy: email,
         },

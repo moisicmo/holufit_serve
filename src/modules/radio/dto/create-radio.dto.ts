@@ -23,12 +23,12 @@ export class CreateRadioDto {
   })
   image: string;
 
-  @IsString()
+  @IsNumber()
   @ApiProperty({
-    example: 'radio 1',
+    example: 1,
     description: 'Nombre de la radio',
   })
-  category: string;
+  categoryId: number;
 
   @IsString()
   @ApiProperty({

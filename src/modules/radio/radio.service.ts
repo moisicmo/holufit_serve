@@ -5,6 +5,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { PaginationDto, PaginationResult } from '@/common';
 import { RadioSelect, RadioType } from './entities/radio.entity';
 import { Prisma } from '@prisma/client';
+import { RadioCategorySelect, RadioCategoryType } from './entities/radio.category.entity';
 
 @Injectable()
 export class RadioService {
@@ -65,6 +66,41 @@ export class RadioService {
       };
     } catch (error) {
       console.error('❌ Error en findAll(Radio):', error);
+      // Manejo de errores personalizado
+      if (error instanceof NotFoundException) throw error;
+      throw new InternalServerErrorException('Hubo un error al listar las radios');
+    }
+  }
+
+  async findAllCategories(paginationDto: PaginationDto): Promise<PaginationResult<RadioCategoryType>> {
+    try {
+      const { page = 1, limit = 10, keys = '' } = paginationDto;
+      // 🔹 Armar el filtro final para Prisma
+      const whereClause: Prisma.RadioCategoryWhereInput = {
+        ...(keys ? { name: { contains: keys, mode: Prisma.QueryMode.insensitive } } : {}),
+      };
+
+      // 🔹 Paginación
+      const total = await this.prisma.radioCategory.count({ where: whereClause });
+      const lastPage = Math.ceil(total / limit);
+
+      // 🔹 Consulta final con selección de campos
+      const data = await this.prisma.radioCategory.findMany({
+        skip: (page - 1) * limit,
+        take: limit,
+        where: whereClause,
+        orderBy: { createdAt: 'asc' },
+        select: RadioCategorySelect,
+      });
+      console.log(data)
+
+      // 🔹 Retornar la respuesta formateada
+      return {
+        data,
+        meta: { total, page, lastPage },
+      };
+    } catch (error) {
+      console.error('❌ Error en findAll(RadioCategory):', error);
       // Manejo de errores personalizado
       if (error instanceof NotFoundException) throw error;
       throw new InternalServerErrorException('Hubo un error al listar las radios');

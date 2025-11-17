@@ -202,8 +202,8 @@ model User {
 
 model RadioRating {
   id        Int      @id @default(autoincrement())
-  userId    Int
-  radioId   Int
+  userId    Int      @map("user_id")
+  radioId   Int      @map("radio_id")
   rating    Int
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
@@ -212,14 +212,21 @@ model RadioRating {
   @@map("radio_ratings")
 }
 
+model RadioCategory {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  radios    Radio[]
+}
+
 model Radio {
   id          Int           @id @default(autoincrement())
-  stationUUID String?       @unique
+  stationUUID String?       @unique @map("station_uuid")
   name        String
   url         String
-  resolvedUrl String?
-  image       String
-  category    String
+  resolvedUrl String?       @map("resolved_url")
+  image       String?
+  categoryId  Int           @map("category_id")
   genre       String
   country     String
   description String?
@@ -228,17 +235,18 @@ model Radio {
   isHls       Boolean       @default(false)
   isOnline    Boolean       @default(true)
   lastCheck   DateTime?
-  lastCheckOk Boolean       @default(true)
+  lastCheckOk Boolean       @default(true) @map("last_check_ok")
   latitude    Float?
   longitude   Float?
   tags        String[]
   languages   String[]
-  avgRating   Float         @default(0)
-  ratingCount Int           @default(0)
+  avgRating   Float         @default(0) @map("avg_rating")
+  ratingCount Int           @default(0) @map("rating_count")
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @default(now()) @updatedAt @map("updated_at")
   createdBy   String        @map("created_by")
   ratings     RadioRating[]
+  category    RadioCategory @relation(fields: [categoryId], references: [id])
 
   @@map("radios")
 }

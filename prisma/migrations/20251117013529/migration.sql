@@ -205,8 +205,8 @@ CREATE TABLE "users" (
 -- CreateTable
 CREATE TABLE "radio_ratings" (
     "id" SERIAL NOT NULL,
-    "userId" INTEGER NOT NULL,
-    "radioId" INTEGER NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "radio_id" INTEGER NOT NULL,
     "rating" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -214,14 +214,23 @@ CREATE TABLE "radio_ratings" (
 );
 
 -- CreateTable
+CREATE TABLE "RadioCategory" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "RadioCategory_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "radios" (
     "id" SERIAL NOT NULL,
-    "stationUUID" TEXT,
+    "station_uuid" TEXT,
     "name" TEXT NOT NULL,
     "url" TEXT NOT NULL,
-    "resolvedUrl" TEXT,
-    "image" TEXT NOT NULL,
-    "category" TEXT NOT NULL,
+    "resolved_url" TEXT,
+    "image" TEXT,
+    "category_id" INTEGER NOT NULL,
     "genre" TEXT NOT NULL,
     "country" TEXT NOT NULL,
     "description" TEXT,
@@ -230,13 +239,13 @@ CREATE TABLE "radios" (
     "isHls" BOOLEAN NOT NULL DEFAULT false,
     "isOnline" BOOLEAN NOT NULL DEFAULT true,
     "lastCheck" TIMESTAMP(3),
-    "lastCheckOk" BOOLEAN NOT NULL DEFAULT true,
+    "last_check_ok" BOOLEAN NOT NULL DEFAULT true,
     "latitude" DOUBLE PRECISION,
     "longitude" DOUBLE PRECISION,
     "tags" TEXT[],
     "languages" TEXT[],
-    "avgRating" DOUBLE PRECISION NOT NULL DEFAULT 0,
-    "ratingCount" INTEGER NOT NULL DEFAULT 0,
+    "avg_rating" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "rating_count" INTEGER NOT NULL DEFAULT 0,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "created_by" TEXT NOT NULL,
@@ -551,7 +560,10 @@ CREATE TABLE "_PermissionToRole" (
 CREATE UNIQUE INDEX "branch_equipments_branch_id_equipment_id_key" ON "branch_equipments"("branch_id", "equipment_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "radios_stationUUID_key" ON "radios"("stationUUID");
+CREATE UNIQUE INDEX "RadioCategory_name_key" ON "RadioCategory"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "radios_station_uuid_key" ON "radios"("station_uuid");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "habit_progresses_habit_id_created_at_key" ON "habit_progresses"("habit_id", "created_at");
@@ -611,10 +623,13 @@ ALTER TABLE "class_schedules" ADD CONSTRAINT "class_schedules_class_id_fkey" FOR
 ALTER TABLE "users" ADD CONSTRAINT "users_address_id_fkey" FOREIGN KEY ("address_id") REFERENCES "addresses"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "radio_ratings" ADD CONSTRAINT "radio_ratings_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "radio_ratings" ADD CONSTRAINT "radio_ratings_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "radio_ratings" ADD CONSTRAINT "radio_ratings_radioId_fkey" FOREIGN KEY ("radioId") REFERENCES "radios"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "radio_ratings" ADD CONSTRAINT "radio_ratings_radio_id_fkey" FOREIGN KEY ("radio_id") REFERENCES "radios"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "radios" ADD CONSTRAINT "radios_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "RadioCategory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "weight_records" ADD CONSTRAINT "weight_records_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
