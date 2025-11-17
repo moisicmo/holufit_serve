@@ -22,7 +22,7 @@ export class RadioController {
     return this.radioService.findAll(paginationDto);
   }
 
-  @Get()
+  @Get('/category')
   findAllCategories(@Query() paginationDto: PaginationDto) {
     return this.radioService.findAllCategories(paginationDto);
   }
