@@ -1,7 +1,6 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query } from '@nestjs/common';
 import { RadioService } from './radio.service';
 import { CreateRadioDto } from './dto/create-radio.dto';
-import { UpdateRadioDto } from './dto/update-radio.dto';
 import { checkAbilities, CurrentUser } from '@/decorator';
 import { TypeAction } from '@prisma/client';
 import { PaginationDto, TypeSubject } from '@/common';
@@ -25,23 +24,5 @@ export class RadioController {
   @Get('/category')
   findAllCategories(@Query() paginationDto: PaginationDto) {
     return this.radioService.findAllCategories(paginationDto);
-  }
-
-  @Get(':id')
-  @checkAbilities({ action: TypeAction.leer, subject: TypeSubject.radio })
-  findOne(@Param('id') id: string) {
-    return this.radioService.findOne(+id);
-  }
-
-  @Patch(':id')
-  @checkAbilities({ action: TypeAction.editar, subject: TypeSubject.radio })
-  update(@Param('id') id: string, @Body() updateRadioDto: UpdateRadioDto) {
-    return this.radioService.update(+id, updateRadioDto);
-  }
-
-  @Delete(':id')
-  @checkAbilities({ action: TypeAction.eliminar, subject: TypeSubject.radio })
-  remove(@Param('id') id: string) {
-    return this.radioService.remove(+id);
   }
 }

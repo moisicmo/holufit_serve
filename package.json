@@ -21,7 +21,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
     "prisma:seed": "prisma db seed",
-    "seed:radios": "ts-node src/prisma/seed_radios.ts"
+    "seed:radios": "ts-node src/prisma/seed_radios.ts",
+    "seed:many-gyms": "ts-node src/prisma/seed_many_gyms.ts"
   },
   "prisma": {
     "seed": "ts-node src/prisma/seed.ts"

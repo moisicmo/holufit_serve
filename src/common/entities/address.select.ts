@@ -4,4 +4,6 @@ export const AddressSelect = {
   city: true,
   zone: true,
   detail: true,
+  latitude: true,
+  longitude: true,
 }

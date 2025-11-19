@@ -191,77 +191,6 @@ async function main() {
       }
     });
 
-    // datos de tenant trigger
-    const tenantName = 'GYM Holu Fit';
-    const branchName = 'Casa Matriz';
-    const branchCity = 'La Paz';
-    const branchZone = 'Zona Sur';
-    const branchDetail = 'Av. Siempre Viva #123';
-    const branchLatitude = -16.500000;
-    const branchLongitude = -68.150000;
-    const planName = 'Plan Básico';
-    const planDescription = 'Acceso a todas las instalaciones durante el horario laboral.';
-    const planPrice = 29.99;
-    const planDuration = 30;
-    const planAccessDays = 5;
-    const startTimeMonFri = '08:00';
-    const endTimeMonFri = '22:00';
-    const startTimeWeekend = '09:00';
-    const endTimeWeekend = '16:00';
-    const DayOfWeek = [1, 2, 3, 4, 5, 6, 7];
-
-
-    const address = await prisma.address.create({
-      data: {
-        city: branchCity,
-        zone: branchZone,
-        detail: branchDetail,
-        latitude: branchLatitude,
-        longitude: branchLongitude,
-        createdBy: email,
-      },
-    });
-
-
-    const tenant = await prisma.tenant.create({
-      data: {
-        name: tenantName,
-        createdBy: email,
-      },
-    });
-
-    const branch = await prisma.branch.create({
-      data: {
-        addressId: address.id,
-        name: branchName,
-        tenantId: tenant.id,
-        createdBy: email,
-      },
-    });
-
-    const plan = await prisma.plan.create({
-      data: {
-        branchId: branch.id,
-        name: planName,
-        description: planDescription,
-        price: planPrice,
-        duration: planDuration,
-        accessDays: planAccessDays,
-        createdBy: email,
-      },
-    });
-
-    await prisma.planSchedule.createMany({
-      data: [
-        ...DayOfWeek.map(day => ({
-          dayOfWeek: day,
-          startTime: (day >= 1 && day <= 5) ? startTimeMonFri : startTimeWeekend,
-          endTime: (day >= 1 && day <= 5) ? endTimeMonFri : endTimeWeekend,
-          planId: plan.id,
-          createdBy: email,
-        })),
-      ]
-    });
     const radioCategory = await prisma.radioCategory.create({
       data: {
         name: 'general'
@@ -286,7 +215,6 @@ async function main() {
         },
       ]
     });
-
     console.log('✅ Datos de semilla insertados correctamente.');
   } catch (error) {
     console.error('❌ Error al insertar datos de semilla:', error);

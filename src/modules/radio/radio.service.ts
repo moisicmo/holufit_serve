@@ -1,6 +1,5 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateRadioDto } from './dto/create-radio.dto';
-import { UpdateRadioDto } from './dto/update-radio.dto';
 import { PrismaService } from '@/prisma/prisma.service';
 import { PaginationDto, PaginationResult } from '@/common';
 import { RadioSelect, RadioType } from './entities/radio.entity';
@@ -119,17 +118,5 @@ export class RadioService {
       if (error instanceof NotFoundException) throw error;
       throw new InternalServerErrorException('Hubo un error al listar las radios');
     }
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} radio`;
-  }
-
-  update(id: number, updateRadioDto: UpdateRadioDto) {
-    return `This action updates a #${id} radio`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} radio`;
   }
 }
