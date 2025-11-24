@@ -11,6 +11,7 @@ import { ValidatePinDto } from './dto/validate-pin.dto';
 import { AuthProviderType } from '@prisma/client';
 import { GoogleAuthService } from '@/common/google/auth/google.auth.service';
 import { UserEntity, UserSelect } from '@/common';
+import { FacebookAuthService } from '@/common/facebook/auth/facebook.auth.service';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +19,7 @@ export class AuthService {
     private prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly googleAuth: GoogleAuthService,
+    private readonly facebookAuth: FacebookAuthService,
   ) { }
 
   signJWT(payload: JwtPayload, expiresIn?: string | number) {
@@ -38,6 +40,8 @@ export class AuthService {
           return await this.authLogin(createAuthDto, requestInfo);
         case AuthProviderType.google:
           return await this.authGoogle(createAuthDto, requestInfo);
+        case AuthProviderType.facebook:
+          return await this.authFacebook(createAuthDto, requestInfo);
         default:
           throw new BadRequestException('Proveedor no soportado');
       }
@@ -78,9 +82,9 @@ export class AuthService {
   private async authGoogle(createAuthDto: CreateAuthDto, requestInfo: RequestInfo) {
     const { idToken } = createAuthDto;
     if (!idToken) throw new BadRequestException('Falta el idToken de Google');
-    const googleUser = await this.googleAuth.verifyToken(idToken);
-    console.log(googleUser)
-    const { email } = googleUser;
+    const authProviderUser = await this.googleAuth.verifyToken(idToken);
+    console.log(authProviderUser)
+    const { email } = authProviderUser;
     const user = await this.prisma.user.findFirst({
       where: {
         authProviders: { some: { email } },
@@ -90,10 +94,31 @@ export class AuthService {
     console.log(user);
     if (!user) throw new NotFoundException({
       message:'Usuario no encontrado',
-      googleUser
+      authProviderUser,
     });
     return await this.generateSession(user, email!, requestInfo);
   }
+
+  private async authFacebook(createAuthDto: CreateAuthDto, requestInfo: RequestInfo) {
+    const { idToken } = createAuthDto;
+    if (!idToken) throw new BadRequestException('Falta el idToken de Facebook');
+    const authProviderUser = await this.facebookAuth.verifyToken(idToken);
+    console.log(authProviderUser)
+    const { email } = authProviderUser;
+    const user = await this.prisma.user.findFirst({
+      where: {
+        authProviders: { some: { email } },
+      },
+      select: UserSelect,
+    });
+    console.log(user);
+    if (!user) throw new NotFoundException({
+      message:'Usuario no encontrado',
+      authProviderUser
+    });
+    return await this.generateSession(user, email, requestInfo);
+  }
+
   private async generateSession(
     user: UserEntity,
     email: string,
@@ -108,7 +133,7 @@ export class AuthService {
     };
 
     const token = this.signJWT(tokenPayload);
-    const refreshToken = this.signJWT(tokenPayload, '1d');
+    const refreshToken = this.signJWT(tokenPayload, '30d');
 
     await this.prisma.authSession.create({
       data: {
@@ -149,7 +174,7 @@ export class AuthService {
       });
       const { exp: _, iat: __, nbf: ___, ...cleanPayload } = payload;
       const newAccessToken = this.signJWT(cleanPayload);
-      const newRefreshToken = this.signJWT(cleanPayload, '1d');
+      const newRefreshToken = this.signJWT(cleanPayload, '30d');
       await this.prisma.authSession.create({
         data: {
           userId: cleanPayload.id,

@@ -16,6 +16,7 @@ interface EnvVars {
   GOOGLE_CLIENT_ID:string;
   GOOGLE_CLIENT_ID_IOS:string;
   GOOGLE_CLIENT_ID_ANDROID:string;
+  FB_APP_ID:string;
 }
 
 const envsSchema = joi
@@ -34,6 +35,7 @@ const envsSchema = joi
     GOOGLE_CLIENT_ID: joi.string().required(),
     GOOGLE_CLIENT_ID_IOS: joi.string().required(),
     GOOGLE_CLIENT_ID_ANDROID: joi.string().required(),
+    FB_APP_ID: joi.string().required(),
   })
   .unknown(true);
 
@@ -62,4 +64,5 @@ export const envs = {
   googleClientId: envVars.GOOGLE_CLIENT_ID,
   googleClientIdIos: envVars.GOOGLE_CLIENT_ID_IOS,
   googleClientIdAndroid: envVars.GOOGLE_CLIENT_ID_ANDROID,
+  fbAppId: envVars.FB_APP_ID,
 };
