@@ -307,6 +307,7 @@ CREATE TABLE "activity_progresses" (
     "id" SERIAL NOT NULL,
     "activity_id" INTEGER NOT NULL,
     "status" "ProgressStatus" NOT NULL,
+    "progress_date" TIMESTAMP(3) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "activity_progresses_pkey" PRIMARY KEY ("id")
@@ -570,7 +571,7 @@ CREATE UNIQUE INDEX "radios_station_uuid_key" ON "radios"("station_uuid");
 CREATE UNIQUE INDEX "habit_progresses_habit_id_progress_date_key" ON "habit_progresses"("habit_id", "progress_date");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "activity_progresses_activity_id_createdAt_key" ON "activity_progresses"("activity_id", "createdAt");
+CREATE UNIQUE INDEX "activity_progresses_activity_id_progress_date_key" ON "activity_progresses"("activity_id", "progress_date");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "auth_providers_provider_providerId_key" ON "auth_providers"("provider", "providerId");

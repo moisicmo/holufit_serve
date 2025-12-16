@@ -33,6 +33,7 @@ export const UserSelect = {
         select: {
           id: true,
           status: true,
+          progressDate: true,
           createdAt: true,
         }
       }

@@ -304,13 +304,14 @@ model HabitProgress {
 }
 
 model ActivityProgress {
-  id         Int            @id @default(autoincrement())
-  activityId Int            @map("activity_id")
-  status     ProgressStatus
-  createdAt  DateTime       @default(now())
-  activity   DailyActivity  @relation(fields: [activityId], references: [id])
+  id           Int            @id @default(autoincrement())
+  activityId   Int            @map("activity_id")
+  status       ProgressStatus
+  progressDate DateTime       @map("progress_date")
+  createdAt    DateTime       @default(now())
+  activity     DailyActivity  @relation(fields: [activityId], references: [id])
 
-  @@unique([activityId, createdAt])
+  @@unique([activityId, progressDate])
   @@map("activity_progresses")
 }
 
