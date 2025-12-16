@@ -14,7 +14,7 @@ export class TenantController {
   @checkAbilities({ action: TypeAction.crear, subject: TypeSubject.tenant })
   create(@Body() createTenantDto: CreateTenantDto) {
     return this.tenantService.create(createTenantDto);
-  }
+  }w
 
   @Get()
   // @checkAbilities({ action: TypeAction.leer, subject: TypeSubject.tenant })

@@ -294,6 +294,7 @@ CREATE TABLE "habit_progresses" (
     "id" SERIAL NOT NULL,
     "habit_id" INTEGER NOT NULL,
     "status" "ProgressStatus" NOT NULL,
+    "progress_date" TIMESTAMP(3) NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "created_by" TEXT NOT NULL,
@@ -566,7 +567,7 @@ CREATE UNIQUE INDEX "RadioCategory_name_key" ON "RadioCategory"("name");
 CREATE UNIQUE INDEX "radios_station_uuid_key" ON "radios"("station_uuid");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "habit_progresses_habit_id_created_at_key" ON "habit_progresses"("habit_id", "created_at");
+CREATE UNIQUE INDEX "habit_progresses_habit_id_progress_date_key" ON "habit_progresses"("habit_id", "progress_date");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "activity_progresses_activity_id_createdAt_key" ON "activity_progresses"("activity_id", "createdAt");
